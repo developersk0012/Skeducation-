@@ -692,4 +692,497 @@
                         <button class="skip-btn" onclick="skipQuestion()">⏭️ Skip</button>
                         <button class="submit-btn" onclick="endQuiz()">📥 Submit Quiz</button>
                     </div>
-               
+                </div>
+            `;
+            
+            // Reset game state
+            GameState.score = 0;
+            GameState.correct = 0;
+            GameState.wrong = 0;
+            GameState.skipped = 0;
+            GameState.questionCount = 0;
+            
+            generateNewQuestion();
+        }
+
+        function renderCalculator() {
+            const mainContent = document.getElementById('mainContent');
+            mainContent.innerHTML = `
+                <div class="calculator-section">
+                    <div class="calculator-tabs">
+                        <button class="calc-tab active" onclick="switchCalculator('normal')">🧮 Normal</button>
+                        <button class="calc-tab" onclick="switchCalculator('algebra')">🔢 Algebra</button>
+                    </div>
+                    
+                    <div class="calculator normal-calc" id="normalCalc">
+                        <div class="calc-display" id="normalDisplay">0</div>
+                        <div class="calc-buttons" id="normalButtons"></div>
+                    </div>
+
+                    <div class="calculator algebra-calc hidden" id="algebraCalc">
+                        <div class="calc-display" id="algebraDisplay">0</div>
+                        <div class="calc-buttons" id="algebraButtons"></div>
+                    </div>
+
+                    <button class="back-btn" onclick="backToMain()" style="margin-top: 20px;">← Back to Main</button>
+                </div>
+            `;
+            
+            renderNormalCalculator();
+            renderAlgebraCalculator();
+            resetCalculators();
+        }
+
+        function renderNormalCalculator() {
+            const buttons = [
+                ['C', '(', ')', '÷'],
+                ['7', '8', '9', '×'],
+                ['4', '5', '6', '-'],
+                ['1', '2', '3', '+'],
+                ['0', '.', '⌫', '=']
+            ];
+            
+            const container = document.getElementById('normalButtons');
+            let html = '';
+            
+            buttons.forEach(row => {
+                row.forEach(btn => {
+                    let className = 'calc-btn';
+                    if (btn === 'C') className += ' clear';
+                    else if (btn === '=') className += ' equals';
+                    else if (['+', '-', '×', '÷'].includes(btn)) className += ' operator';
+                    else if (btn === '⌫') className += ' function';
+                    
+                    html += `<button class="${className}" onclick="handleNormalCalc('${btn}')">${btn}</button>`;
+                });
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function renderAlgebraCalculator() {
+            const buttons = [
+                ['C', '7', '8', '9', 'x²'],
+                ['x³', '4', '5', '6', '√x'],
+                ['∛x', '1', '2', '3', '+'],
+                ['-', '0', '.', '⌫', '×'],
+                ['÷', '=', '', '', '']
+            ];
+            
+            const container = document.getElementById('algebraButtons');
+            let html = '';
+            
+            buttons.flat().forEach(btn => {
+                if (btn) {
+                    let className = 'calc-btn';
+                    if (btn === 'C') className += ' clear';
+                    else if (btn === '=') className += ' equals';
+                    else if (['+', '-', '×', '÷'].includes(btn)) className += ' operator';
+                    else if (['x²', 'x³', '√x', '∛x', '⌫'].includes(btn)) className += ' function';
+                    
+                    html += `<button class="${className}" onclick="handleAlgebraCalc('${btn}')">${btn}</button>`;
+                }
+            });
+            
+            container.innerHTML = html;
+        }
+
+        function renderResult() {
+            const modalContainer = document.getElementById('modalContainer');
+            modalContainer.innerHTML = `
+                <div class="modal">
+                    <div class="modal-content">
+                        <h2>🎉 Quiz Complete!</h2>
+                        <div class="stat correct">✅ Correct: <span>${GameState.correct}</span></div>
+                        <div class="stat wrong">❌ Wrong: <span>${GameState.wrong}</span></div>
+                        <div class="stat skipped">⏭️ Skipped: <span>${GameState.skipped}</span></div>
+                        <div class="stat score">⭐ Score: <span>${GameState.score}</span></div>
+                        <button class="play-again-btn" onclick="playAgain()">Play Again</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderScoreboard() {
+            const history = getGameHistory();
+            const modalContainer = document.getElementById('modalContainer');
+            
+            if (history.length === 0) {
+                modalContainer.innerHTML = `
+                    <div class="modal">
+                        <div class="modal-content">
+                            <h2>📊 Your Scoreboard</h2>
+                            <div style="text-align:center; padding:30px;">No games yet! Play some quizzes 🎮</div>
+                            <button class="play-again-btn" onclick="closeModal()">Close</button>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            let totalScore = 0, totalGames = history.length;
+            history.forEach(game => totalScore += game.score || 0);
+            
+            let historyHtml = '';
+            history.slice(0, 10).forEach(game => {
+                historyHtml += `
+                    <div class="history-item">
+                        <div class="history-header">
+                            <span class="history-category">${game.category}</span>
+                            <span class="history-difficulty ${game.difficulty}">${game.difficulty}</span>
+                        </div>
+                        <div class="history-stats">
+                            <div class="history-stat" style="color:#4CAF50;">✅ ${game.correct}</div>
+                            <div class="history-stat" style="color:#f44336;">❌ ${game.wrong}</div>
+                            <div class="history-stat" style="color:#FF9800;">⏭️ ${game.skipped}</div>
+                            <div class="history-stat" style="color:#2196F3;">⭐ ${game.score}</div>
+                        </div>
+                        <div class="history-date">${game.date}</div>
+                    </div>
+                `;
+            });
+            
+            modalContainer.innerHTML = `
+                <div class="modal">
+                    <div class="modal-content">
+                        <h2>📊 Your Scoreboard</h2>
+                        <div class="scoreboard-stats">
+                            <div class="stat-card">
+                                <div class="number">${totalGames}</div>
+                                <div>Total Games</div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="number">${totalScore}</div>
+                                <div>Total Score</div>
+                            </div>
+                        </div>
+                        <h3 style="margin:15px 0;">Recent Games</h3>
+                        ${historyHtml}
+                        <button class="play-again-btn" onclick="closeModal()">Close</button>
+                        <button class="clear-btn" onclick="clearHistory()">Clear All History</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        // ==================== GAME FUNCTIONS ====================
+        function selectCategory(category) {
+            GameState.currentCategory = category;
+            renderLevelSelection(category);
+        }
+
+        function backToMain() {
+            if (GameState.timer) clearInterval(GameState.timer);
+            renderCategories();
+        }
+
+        function startGame(difficulty) {
+            GameState.currentDifficulty = difficulty;
+            renderGame();
+        }
+
+        function generateNewQuestion() {
+            GameState.questionCount++;
+            document.getElementById('currentQ').textContent = GameState.questionCount;
+            
+            let range;
+            if (GameState.currentDifficulty === 'easy') range = { min: 1, max: 20 };
+            else if (GameState.currentDifficulty === 'medium') range = { min: 21, max: 50 };
+            else range = { min: 51, max: 100 };
+            
+            let num = Math.floor(Math.random() * (range.max - range.min + 1)) + range.min;
+            let answer, questionText;
+            
+            switch(GameState.currentCategory) {
+                case 'Square Root':
+                    answer = num;
+                    questionText = `√${num * num} = ?`;
+                    break;
+                case 'Cube Root':
+                    let cubeNum = Math.floor(Math.random() * 10) + 1;
+                    answer = cubeNum;
+                    questionText = `∛${cubeNum * cubeNum * cubeNum} = ?`;
+                    break;
+                case 'Square Numbers':
+                    answer = num * num;
+                    questionText = `${num}² = ?`;
+                    break;
+                case 'Cube Numbers':
+                    let smallNum = Math.floor(Math.random() * 10) + 1;
+                    answer = smallNum * smallNum * smallNum;
+                    questionText = `${smallNum}³ = ?`;
+                    break;
+            }
+            
+            let options = [answer];
+            while(options.length < 4) {
+                let offset = Math.floor(Math.random() * 10) - 5;
+                if(offset === 0) offset = 1;
+                let opt = answer + offset;
+                if(opt > 0 && !options.includes(opt)) options.push(opt);
+            }
+            
+            GameState.currentQuestion = {
+                text: questionText,
+                answer: answer,
+                options: shuffleArray(options)
+            };
+            
+            displayQuestion();
+        }
+
+        function shuffleArray(array) {
+            for(let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function displayQuestion() {
+            const q = GameState.currentQuestion;
+            document.getElementById('questionText').textContent = q.text;
+            
+            let optionsHtml = '';
+            q.options.forEach(opt => {
+                optionsHtml += `<button class="option-btn" onclick="checkAnswer(${opt})">${opt}</button>`;
+            });
+            document.getElementById('optionsGrid').innerHTML = optionsHtml;
+            
+            startTimer();
+        }
+
+        function startTimer() {
+            if (GameState.timer) clearInterval(GameState.timer);
+            
+            GameState.timeLeft = 20;
+            document.getElementById('timer').textContent = GameState.timeLeft + 's';
+            document.getElementById('timer').classList.remove('warning');
+            
+            GameState.timer = setInterval(() => {
+                GameState.timeLeft--;
+                document.getElementById('timer').textContent = GameState.timeLeft + 's';
+                
+                if(GameState.timeLeft <= 5) {
+                    document.getElementById('timer').classList.add('warning');
+                }
+                
+                if(GameState.timeLeft <= 0) {
+                    clearInterval(GameState.timer);
+                    timeOut();
+                }
+            }, 1000);
+        }
+
+        function checkAnswer(selected) {
+            clearInterval(GameState.timer);
+            
+            const q = GameState.currentQuestion;
+            const options = document.querySelectorAll('.option-btn');
+            
+            options.forEach(opt => opt.disabled = true);
+            
+            if(selected == q.answer) {
+                event.target.classList.add('correct');
+                GameState.correct++;
+                GameState.score += 10;
+            } else {
+                event.target.classList.add('wrong');
+                GameState.wrong++;
+                options.forEach(opt => {
+                    if(parseFloat(opt.textContent) == q.answer) {
+                        opt.classList.add('correct');
+                    }
+                });
+            }
+            
+            setTimeout(() => generateNewQuestion(), 800);
+        }
+
+        function timeOut() {
+            GameState.wrong++;
+            const q = GameState.currentQuestion;
+            const options = document.querySelectorAll('.option-btn');
+            
+            options.forEach(opt => opt.disabled = true);
+            options.forEach(opt => {
+                if(parseFloat(opt.textContent) == q.answer) {
+                    opt.classList.add('correct');
+                }
+            });
+            
+            setTimeout(() => generateNewQuestion(), 800);
+        }
+
+        function skipQuestion() {
+            clearInterval(GameState.timer);
+            GameState.skipped++;
+            
+            const q = GameState.currentQuestion;
+            const options = document.querySelectorAll('.option-btn');
+            
+            options.forEach(opt => opt.disabled = true);
+            options.forEach(opt => {
+                if(parseFloat(opt.textContent) == q.answer) {
+                    opt.classList.add('correct');
+                }
+            });
+            
+            setTimeout(() => generateNewQuestion(), 600);
+        }
+
+        function endQuiz() {
+            clearInterval(GameState.timer);
+            saveGameToStorage();
+            renderResult();
+        }
+
+        function playAgain() {
+            closeModal();
+            backToMain();
+        }
+
+        // ==================== CALCULATOR FUNCTIONS ====================
+        function openCalculator() {
+            renderCalculator();
+        }
+
+        function switchCalculator(type) {
+            document.getElementById('normalCalc').classList.toggle('hidden', type !== 'normal');
+            document.getElementById('algebraCalc').classList.toggle('hidden', type !== 'algebra');
+            document.querySelectorAll('.calc-tab').forEach(tab => {
+                tab.classList.toggle('active', tab.textContent.includes(type === 'normal' ? 'Normal' : 'Algebra'));
+            });
+        }
+
+        function resetCalculators() {
+            GameState.calculator.normalExpr = '';
+            GameState.calculator.algebraExpr = '';
+            document.getElementById('normalDisplay').textContent = '0';
+            document.getElementById('algebraDisplay').textContent = '0';
+        }
+
+        function handleNormalCalc(btn) {
+            if (btn === 'C') {
+                GameState.calculator.normalExpr = '';
+                document.getElementById('normalDisplay').textContent = '0';
+            } else if (btn === '⌫') {
+                GameState.calculator.normalExpr = GameState.calculator.normalExpr.slice(0, -1);
+                document.getElementById('normalDisplay').textContent = GameState.calculator.normalExpr || '0';
+            } else if (btn === '=') {
+                try {
+                    let expr = GameState.calculator.normalExpr.replace(/×/g, '*').replace(/÷/g, '/');
+                    let result = eval(expr);
+                    document.getElementById('normalDisplay').textContent = result;
+                    GameState.calculator.normalExpr = result.toString();
+                } catch {
+                    document.getElementById('normalDisplay').textContent = 'Error';
+                    GameState.calculator.normalExpr = '';
+                }
+            } else {
+                GameState.calculator.normalExpr += btn;
+                document.getElementById('normalDisplay').textContent = GameState.calculator.normalExpr;
+            }
+        }
+
+        function handleAlgebraCalc(btn) {
+            if (btn === 'C') {
+                GameState.calculator.algebraExpr = '';
+                document.getElementById('algebraDisplay').textContent = '0';
+            } else if (btn === '⌫') {
+                GameState.calculator.algebraExpr = GameState.calculator.algebraExpr.slice(0, -1);
+                document.getElementById('algebraDisplay').textContent = GameState.calculator.algebraExpr || '0';
+            } else if (btn === 'x²') {
+                let num = parseFloat(GameState.calculator.algebraExpr) || 0;
+                let result = num * num;
+                document.getElementById('algebraDisplay').textContent = result;
+                GameState.calculator.algebraExpr = result.toString();
+            } else if (btn === 'x³') {
+                let num = parseFloat(GameState.calculator.algebraExpr) || 0;
+                let result = num * num * num;
+                document.getElementById('algebraDisplay').textContent = result;
+                GameState.calculator.algebraExpr = result.toString();
+            } else if (btn === '√x') {
+                let num = parseFloat(GameState.calculator.algebraExpr) || 0;
+                if (num < 0) {
+                    document.getElementById('algebraDisplay').textContent = 'Error';
+                    GameState.calculator.algebraExpr = '';
+                } else {
+                    let result = Math.sqrt(num);
+                    document.getElementById('algebraDisplay').textContent = result;
+                    GameState.calculator.algebraExpr = result.toString();
+                }
+            } else if (btn === '∛x') {
+                let num = parseFloat(GameState.calculator.algebraExpr) || 0;
+                let result = Math.cbrt(num);
+                document.getElementById('algebraDisplay').textContent = result;
+                GameState.calculator.algebraExpr = result.toString();
+            } else if (btn === '=') {
+                try {
+                    let expr = GameState.calculator.algebraExpr.replace(/×/g, '*').replace(/÷/g, '/');
+                    let result = eval(expr);
+                    document.getElementById('algebraDisplay').textContent = result;
+                    GameState.calculator.algebraExpr = result.toString();
+                } catch {
+                    document.getElementById('algebraDisplay').textContent = GameState.calculator.algebraExpr || '0';
+                }
+            } else {
+                GameState.calculator.algebraExpr += btn;
+                document.getElementById('algebraDisplay').textContent = GameState.calculator.algebraExpr;
+            }
+        }
+
+        // ==================== STORAGE FUNCTIONS ====================
+        function saveGameToStorage() {
+            const gameData = {
+                id: Date.now(),
+                category: GameState.currentCategory,
+                difficulty: GameState.currentDifficulty,
+                correct: GameState.correct,
+                wrong: GameState.wrong,
+                skipped: GameState.skipped,
+                score: GameState.score,
+                total: GameState.questionCount,
+                date: new Date().toLocaleString()
+            };
+            
+            let history = JSON.parse(localStorage.getItem('quizHistory')) || [];
+            history.unshift(gameData);
+            if (history.length > 50) history.pop();
+            localStorage.setItem('quizHistory', JSON.stringify(history));
+        }
+
+        function getGameHistory() {
+            return JSON.parse(localStorage.getItem('quizHistory')) || [];
+        }
+
+        function showScoreboard() {
+            renderScoreboard();
+        }
+
+        function clearHistory() {
+            if (confirm('Delete all game history?')) {
+                localStorage.removeItem('quizHistory');
+                closeModal();
+                showScoreboard();
+            }
+        }
+
+        function clearAllHistory() {
+            clearHistory();
+        }
+
+        // ==================== UTILITY FUNCTIONS ====================
+        function toggleMenu() {
+            document.getElementById('menuDropdown').classList.toggle('active');
+        }
+
+        function closeModal() {
+            document.getElementById('modalContainer').innerHTML = '';
+        }
+
+        // ==================== INITIALIZE APP ====================
+        document.addEventListener('DOMContentLoaded', initApp);
+    </script>
+</body>
+</html>
