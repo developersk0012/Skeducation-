@@ -248,7 +248,7 @@ body{
   <div class="modal-box">
     <div class="modal-title">🏆 Leaderboard</div>
     <div id="sbContent"></div>
-    <button class="dl-btn" onclick="downloadMyPDF()">📄 Download My PDF</button>
+    <button class="dl-btn" onclick="downloadScorePDF()">📊 Download Score PDF</button>
     <button class="close-modal-btn" onclick="closeModal('sbModal')">Close</button>
   </div>
 </div>
@@ -284,26 +284,27 @@ function showToast(msg,type='success'){
 }
 function closeModal(id){ document.getElementById(id).classList.remove('show'); }
 
-auth.onAuthStateChanged(async user=>{
+auth.onAuthStateChanged(user=>{
   if(!user){ window.location.href='login.html'; return; }
   currentUser=user;
-  await loadUserData(user.uid);
+  // Realtime listener - naam turant dikhega
+  db.ref('users/'+user.uid).on('value', snap=>{
+    if(snap.exists()){
+      currentUserData=snap.val();
+      document.getElementById('headerName').textContent=currentUserData.name||'Player';
+      document.getElementById('bannerScore').textContent=currentUserData.score||0;
+      document.getElementById('bannerGames').textContent=(currentUserData.gamesPlayed||0)+' games played';
+      document.getElementById('statCorrect').textContent=currentUserData.totalCorrect||0;
+      document.getElementById('statWrong').textContent=currentUserData.totalWrong||0;
+      document.getElementById('statSkipped').textContent=currentUserData.totalSkipped||0;
+      loadRanking();
+    } else {
+      const n = user.displayName || user.email?.split('@')[0] || 'Player';
+      document.getElementById('headerName').textContent=n;
+    }
+  });
   loadGameHistory();
-  loadRanking();
 });
-
-async function loadUserData(uid){
-  const snap=await db.ref('users/'+uid).get();
-  if(snap.exists()){
-    currentUserData=snap.val();
-    document.getElementById('headerName').textContent=currentUserData.name;
-    document.getElementById('bannerScore').textContent=currentUserData.score||0;
-    document.getElementById('bannerGames').textContent=(currentUserData.gamesPlayed||0)+' games played';
-    document.getElementById('statCorrect').textContent=currentUserData.totalCorrect||0;
-    document.getElementById('statWrong').textContent=currentUserData.totalWrong||0;
-    document.getElementById('statSkipped').textContent=currentUserData.totalSkipped||0;
-  }
-}
 
 async function loadRanking(){
   const snap=await db.ref('users').orderByChild('score').get();
@@ -486,6 +487,119 @@ function generatePDF(user, history, rank, totalUsers){
   doc.text('SK Education World — Generated '+new Date().toLocaleString('en-IN'),W/2,H-8,{align:'center'});
   doc.save('SK_Report_'+user.name.replace(/ /g,'_')+'.pdf');
   showToast('📄 PDF Downloaded!','success');
+}
+
+async function downloadScorePDF(){
+  if(!currentUserData){ showToast('Data load ho raha hai...','error'); return; }
+  showToast('📊 PDF ban raha hai...','success');
+  const snap=await db.ref('users').orderByChild('score').get();
+  let users=[];
+  if(snap.exists()) snap.forEach(c=>users.push(c.val()));
+  users.sort((a,b)=>(b.score||0)-(a.score||0));
+  const rank=users.findIndex(u=>u.uid===currentUser.uid)+1;
+  const total=users.length;
+  const user=currentUserData;
+
+  const {jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=210,H=297;
+
+  // BG
+  doc.setFillColor(10,10,26); doc.rect(0,0,W,H,'F');
+
+  // TOP BAND
+  doc.setFillColor(46,204,113); doc.roundedRect(0,0,W,55,0,0,'F');
+  doc.setFillColor(26,140,74); doc.roundedRect(0,47,W,10,0,0,'F');
+
+  // Logo
+  doc.setFillColor(255,255,255); doc.roundedRect(15,10,32,32,8,8,'F');
+  doc.setTextColor(46,204,113); doc.setFont('helvetica','bold'); doc.setFontSize(18);
+  doc.text('SK',31,30,{align:'center'});
+
+  // Title
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(24); doc.setFont('helvetica','bold');
+  doc.text('SK Education World',W/2+10,22,{align:'center'});
+  doc.setFontSize(12); doc.setFont('helvetica','normal');
+  doc.text('Score Report Card',W/2+10,35,{align:'center'});
+  doc.setFontSize(10);
+  doc.text(new Date().toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'}),W/2+10,49,{align:'center'});
+
+  // Photo
+  try{
+    doc.setFillColor(22,33,62); doc.circle(W-38,115,35,'F');
+    doc.setDrawColor(46,204,113); doc.setLineWidth(2); doc.circle(W-38,115,35,'S');
+    doc.addImage('data:image/jpeg;base64,'+SK_IMAGE_B64,'JPEG',W-71,82,66,68,undefined,'FAST');
+  }catch(e){}
+
+  // Name card
+  doc.setFillColor(22,33,62);
+  doc.roundedRect(12,68,118,28,8,8,'F');
+  doc.setFillColor(46,204,113); doc.roundedRect(12,68,4,28,3,3,'F');
+  doc.setTextColor(100,160,120); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('STUDENT',22,78);
+  doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(15);
+  doc.text(user.name,22,89);
+
+  // Info card
+  doc.setFillColor(22,33,62);
+  doc.roundedRect(12,108,118,60,8,8,'F');
+  doc.setFillColor(52,152,219); doc.roundedRect(12,108,4,60,3,3,'F');
+  const info=[
+    ['Phone', user.phone||'-'],
+    ['Gmail', (user.email||'').length>22?(user.email||'').substring(0,20)+'...':(user.email||'-')],
+    ['Joined', new Date(user.createdAt||Date.now()).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'})],
+  ];
+  doc.setTextColor(100,140,200); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+  doc.text('ACCOUNT INFO',22,120);
+  doc.setDrawColor(52,152,219); doc.setLineWidth(0.3); doc.line(22,123,126,123);
+  info.forEach((r,i)=>{
+    const y=131+i*14;
+    doc.setTextColor(120,160,200); doc.setFont('helvetica','bold'); doc.setFontSize(8);
+    doc.text(r[0],22,y);
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','normal'); doc.setFontSize(10);
+    doc.text(r[1],22,y+7);
+  });
+
+  // SCORE + RANK big cards
+  const rankMsg = rank===1?'Champion!':rank<=3?'Top 3!':rank<=10?'Top 10!':'Keep Going!';
+  const scoreColor = rank===1?[255,215,0]:rank<=3?[192,192,192]:[46,204,113];
+
+  doc.setFillColor(46,204,113);
+  doc.roundedRect(12,182,93,60,12,12,'F');
+  doc.setFillColor(22,33,62); doc.roundedRect(15,185,87,54,10,10,'F');
+  doc.setTextColor(46,204,113); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text('TOTAL SCORE',58,200,{align:'center'});
+  doc.setFontSize(40); doc.setTextColor(255,255,255);
+  doc.text(String(user.score||0),58,220,{align:'center'});
+  doc.setFontSize(11); doc.setTextColor(180,220,180);
+  doc.text('points',58,230,{align:'center'});
+
+  doc.setFillColor(52,152,219);
+  doc.roundedRect(109,182,89,60,12,12,'F');
+  doc.setFillColor(22,33,62); doc.roundedRect(112,185,83,54,10,10,'F');
+  doc.setTextColor(52,152,219); doc.setFont('helvetica','bold'); doc.setFontSize(11);
+  doc.text('YOUR RANK',153,200,{align:'center'});
+  doc.setFontSize(36); doc.setTextColor(255,255,255);
+  doc.text('#'+rank,153,220,{align:'center'});
+  doc.setFontSize(10); doc.setTextColor(180,200,220);
+  doc.text('of '+total+' players',153,230,{align:'center'});
+
+  // Motivational banner
+  doc.setFillColor(26,33,62);
+  doc.roundedRect(12,254,W-24,26,8,8,'F');
+  doc.setFillColor(46,204,113); doc.roundedRect(12,254,4,26,3,3,'F');
+  doc.setTextColor(46,204,113); doc.setFont('helvetica','bold'); doc.setFontSize(13);
+  doc.text('Rank #'+rank+' — '+rankMsg+' Keep Studying! 📚',W/2,264,{align:'center'});
+  doc.setTextColor(180,220,180); doc.setFont('helvetica','normal'); doc.setFontSize(10);
+  doc.text('Games Played: '+(user.gamesPlayed||0)+'  |  Correct: '+(user.totalCorrect||0)+'  |  Wrong: '+(user.totalWrong||0),W/2,273,{align:'center'});
+
+  // Footer
+  doc.setTextColor(60,80,70); doc.setFontSize(8);
+  doc.text('SK Education World — Generated '+new Date().toLocaleString('en-IN'),W/2,290,{align:'center'});
+
+  doc.save('SK_Score_'+user.name.replace(/ /g,'_')+'.pdf');
+  showToast('📊 Score PDF Downloaded!','success');
 }
 </script>
 </body>

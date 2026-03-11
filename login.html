@@ -345,72 +345,113 @@ function generateWelcomePDF(user){
     const {jsPDF}=window.jspdf;
     const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
     const W=210, H=297;
-    // Background
-    doc.setFillColor(26,42,30);
-    doc.rect(0,0,W,H,'F');
-    // Green top bar
-    doc.setFillColor(46,204,113);
-    doc.rect(0,0,W,40,'F');
-    // Logo area
+
+    // === BACKGROUND ===
+    doc.setFillColor(10,10,26); doc.rect(0,0,W,H,'F');
+    // Decorative circles
+    doc.setFillColor(46,204,113,0.05);
+    doc.circle(W-40,40,60,'F');
+    doc.circle(40,H-40,50,'F');
+
+    // === TOP GREEN BAND ===
+    doc.setFillColor(46,204,113); doc.roundedRect(0,0,W,55,0,0,'F');
+    doc.setFillColor(26,140,74); doc.roundedRect(0,45,W,12,0,0,'F');
+
+    // SK Logo box
     doc.setFillColor(255,255,255);
-    doc.roundedRect(20,10,20,20,5,5,'F');
+    doc.roundedRect(15,10,32,32,8,8,'F');
     doc.setTextColor(46,204,113);
-    doc.setFontSize(14); doc.setFont('helvetica','bold');
-    doc.text('SK',30,23.5,{align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(18);
+    doc.text('SK',31,30,{align:'center'});
+
     // Title
     doc.setTextColor(255,255,255);
-    doc.setFontSize(22); doc.setFont('helvetica','bold');
-    doc.text('SK Education World 🌎',W/2,22,{align:'center'});
-    doc.setFontSize(11); doc.setFont('helvetica','normal');
-    doc.text('Welcome to Our Website',W/2,32,{align:'center'});
-    // Welcome banner
-    doc.setFillColor(46,204,113,0.15);
-    doc.roundedRect(15,55,W-30,30,8,8,'F');
-    doc.setTextColor(46,204,113);
-    doc.setFontSize(18); doc.setFont('helvetica','bold');
-    doc.text('🎓 Welcome, '+user.name+'!',W/2,73,{align:'center'});
-    // Card
-    doc.setFillColor(40,60,45);
-    doc.roundedRect(15,100,W-30,100,10,10,'F');
-    doc.setFillColor(46,204,113);
-    doc.roundedRect(15,100,4,100,2,2,'F');
-    // Details
-    doc.setTextColor(180,220,195);
-    doc.setFontSize(11); doc.setFont('helvetica','normal');
-    doc.text('YOUR ACCOUNT DETAILS',30,115);
-    doc.setDrawColor(46,204,113,0.3);
-    doc.line(30,118,W-30,118);
+    doc.setFontSize(26); doc.setFont('helvetica','bold');
+    doc.text('SK Education World',W/2+8,24,{align:'center'});
+    doc.setFontSize(12); doc.setFont('helvetica','normal');
+    doc.text('Math Quiz Platform',W/2+8,36,{align:'center'});
+    doc.setFontSize(10);
+    doc.text('Welcome Certificate',W/2+8,50,{align:'center'});
+
+    // === PHOTO (right side, big) ===
+    try{
+      // Photo circle background
+      doc.setFillColor(26,33,62);
+      doc.circle(W-40,120,38,'F');
+      doc.setDrawColor(46,204,113); doc.setLineWidth(2);
+      doc.circle(W-40,120,38,'S');
+      doc.addImage('data:image/jpeg;base64,'+SK_IMAGE_B64,'JPEG',W-75,84,70,76,undefined,'FAST');
+    }catch(e){}
+
+    // === WELCOME GREETING ===
+    doc.setFillColor(22,33,62);
+    doc.roundedRect(12,68,120,28,8,8,'F');
+    doc.setFillColor(46,204,113); doc.roundedRect(12,68,4,28,3,3,'F');
+    doc.setTextColor(46,204,113); doc.setFont('helvetica','bold'); doc.setFontSize(14);
+    doc.text('Welcome!',22,80);
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(16);
+    doc.text(user.name,22,91);
+
+    // === INFO CARD ===
+    doc.setFillColor(22,33,62);
+    doc.roundedRect(12,108,120,80,10,10,'F');
+    doc.setFillColor(46,204,113); doc.roundedRect(12,108,4,80,3,3,'F');
+
+    doc.setTextColor(100,160,120); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+    doc.text('ACCOUNT DETAILS',22,120);
+    doc.setDrawColor(46,204,113); doc.setLineWidth(0.3);
+    doc.line(22,122,128,122);
+
     const rows=[
-      ['👤  Full Name',':', user.name],
-      ['📱  Phone Number',':', user.phone],
-      ['📧  Gmail',':', user.email],
-      ['📅  Joined',':', new Date(user.createdAt).toLocaleDateString('en-IN',{year:'numeric',month:'long',day:'numeric'})],
+      ['Full Name', user.name],
+      ['Phone', user.phone],
+      ['Gmail', user.email],
+      ['Joined', new Date(user.createdAt).toLocaleDateString('en-IN',{year:'numeric',month:'short',day:'numeric'})],
     ];
     rows.forEach((r,i)=>{
-      const y=130+i*18;
-      doc.setTextColor(46,204,113); doc.setFont('helvetica','bold'); doc.setFontSize(11);
-      doc.text(r[0],30,y);
-      doc.setTextColor(255,255,255); doc.setFont('helvetica','normal');
-      doc.text(r[2],105,y);
+      const y = 132+i*16;
+      doc.setTextColor(120,180,140); doc.setFont('helvetica','bold'); doc.setFontSize(9);
+      doc.text(r[0], 22, y);
+      doc.setTextColor(255,255,255); doc.setFont('helvetica','normal'); doc.setFontSize(10);
+      // Truncate long text
+      const val = r[1].length>25 ? r[1].substring(0,22)+'...' : r[1];
+      doc.text(val, 22, y+8);
     });
-    // Score area
+
+    // === MOTIVATIONAL BANNER ===
     doc.setFillColor(46,204,113);
-    doc.roundedRect(15,215,W-30,45,8,8,'F');
+    doc.roundedRect(12,200,W-24,35,10,10,'F');
     doc.setTextColor(255,255,255);
-    doc.setFontSize(14); doc.setFont('helvetica','bold');
-    doc.text('🏆 Current Score: 0 pts',W/2,234,{align:'center'});
-    doc.setFontSize(11); doc.setFont('helvetica','normal');
-    doc.text('Focus on Study 📚 — Your Rank Awaits!',W/2,246,{align:'center'});
-    // Image - centered
-    try{
-      doc.addImage('data:image/jpeg;base64,'+SK_IMAGE_B64,'JPEG',W/2-25,218,50,60,undefined,'FAST');
-    }catch(e){}
-    // Footer
-    doc.setTextColor(100,150,110);
-    doc.setFontSize(9);
-    doc.text('SK Education World — Math Quiz Platform',W/2,284,{align:'center'});
-    doc.text('Generated: '+new Date().toLocaleString('en-IN'),W/2,290,{align:'center'});
+    doc.setFont('helvetica','bold'); doc.setFontSize(15);
+    doc.text('Your Learning Journey Starts Here!',W/2,215,{align:'center'});
+    doc.setFontSize(10); doc.setFont('helvetica','normal');
+    doc.text('Play quizzes, earn points, climb the leaderboard!',W/2,226,{align:'center'});
+
+    // === STATS BOXES ===
+    const boxes=[
+      {label:'Score',val:'0',color:[46,204,113]},
+      {label:'Rank',val:'#-',color:[52,152,219]},
+      {label:'Games',val:'0',color:[155,89,182]},
+    ];
+    const bW=55, bX=12;
+    boxes.forEach((b,i)=>{
+      const x=bX+i*(bW+5);
+      doc.setFillColor(22,33,62);
+      doc.roundedRect(x,245,bW,32,8,8,'F');
+      doc.setFillColor(...b.color);
+      doc.roundedRect(x,245,bW,8,8,8,'F');
+      doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(18);
+      doc.text(b.val,x+bW/2,268,{align:'center'});
+      doc.setFontSize(8); doc.setFont('helvetica','normal');
+      doc.text(b.label,x+bW/2,274,{align:'center'});
+    });
+
+    // === FOOTER ===
+    doc.setTextColor(60,90,70); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.text('SK Education World — Generated '+new Date().toLocaleString('en-IN'),W/2,290,{align:'center'});
+
     doc.save('SK_Welcome_'+user.name.replace(/ /g,'_')+'.pdf');
+    console.log('PDF downloaded!');
   }catch(e){ console.log('PDF error',e); }
 }
 </script>
