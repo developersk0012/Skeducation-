@@ -15,9 +15,11 @@ body{
   font-family:'Nunito',sans-serif;
   background:var(--dark);
   min-height:100vh;
-  display:flex;align-items:center;justify-content:center;
-  overflow:hidden;
+  display:flex;align-items:flex-start;justify-content:center;
+  overflow-y:auto;
+  overflow-x:hidden;
   position:relative;
+  padding:20px 0;
 }
 /* ===== ANIMATED BG ===== */
 .bg-anim{position:fixed;inset:0;z-index:0;overflow:hidden;}
@@ -46,7 +48,7 @@ body{
 .card-wrap{
   position:relative;z-index:10;
   width:100%;max-width:440px;
-  margin:20px;
+  margin:20px auto;
 }
 .card{
   background:rgba(255,255,255,0.04);
