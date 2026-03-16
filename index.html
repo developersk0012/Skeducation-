@@ -4,99 +4,118 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SK Education World - Math Quiz</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI',Roboto,system-ui,sans-serif; }
-        :root {
-            --primary:#2ECC71; --primary-dark:#1a8a4a; --secondary:#3498DB;
-            --warning:#E67E22; --danger:#e74c3c; --dark:#0a0a1a; --light:rgba(46,204,113,0.1); --white:#fff;
-            --card-bg:#16213e; --card2:#0f3460;
-        }
-        body { background:linear-gradient(135deg,#0a0a1a 0%,#0d1b2a 50%,#0a1628 100%); color:#fff; max-width:480px; margin:0 auto; padding:16px; min-height:100vh; }
-
-        .header { display:flex; align-items:center; justify-content:space-between; padding:10px 0 20px; background:transparent; }
-        .logo-container { display:flex; align-items:center; gap:12px; }
-        .logo { width:50px; height:50px; background:linear-gradient(135deg,var(--primary),var(--primary-dark)); border-radius:16px; display:flex; align-items:center; justify-content:center; color:white; font-weight:bold; font-size:22px; }
-        .welcome-text { font-size:15px; color:rgba(255,255,255,0.6); }
-        .welcome-text span { color:var(--primary); font-size:18px; font-weight:700; display:block; }
-        .menu-icon { cursor:pointer; padding:10px; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:14px; }
-        .menu-icon span { display:block; width:22px; height:3px; background:#fff; margin:4px 0; border-radius:3px; }
-
-        .menu-dropdown { position:fixed; top:80px; right:16px; background:#16213e; border:1px solid rgba(46,204,113,0.2); border-radius:24px; box-shadow:0 10px 40px rgba(0,0,0,0.5); padding:8px; display:none; z-index:1000; min-width:220px; }
-        .menu-dropdown.active { display:block; }
-        .menu-dropdown a { display:flex; align-items:center; gap:12px; padding:16px; text-decoration:none; color:#fff; border-radius:18px; cursor:pointer; }
-        .menu-dropdown a:hover { background:rgba(46,204,113,0.15); }
-
-        .section-title { font-size:24px; margin:20px 0 15px; font-weight:700; padding-left:16px; border-left:6px solid var(--primary); }
-        .categories-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:16px; margin-bottom:20px; }
-        .category-card { background:#16213e; border-radius:24px; padding:24px 16px; text-align:center; cursor:pointer; box-shadow:0 4px 20px rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.07); transition:transform 0.15s; }
-        .category-card:active { transform:scale(0.97); }
-        .category-icon { font-size:42px; margin-bottom:10px; display:block; }
-        .category-name { font-weight:600; color:#fff; }
-        .category-card.calculator-card { background:linear-gradient(135deg,#FF6B6B,#FF8E53); color:white; grid-column:span 2; }
-        .category-card.calculator-card .category-name { color:white; }
-        .category-card.practice-card { background:linear-gradient(135deg,#667eea,#764ba2); color:white; grid-column:span 2; }
-        .category-card.practice-card .category-name { color:white; }
-
-        .level-selection { background:#16213e; border-radius:32px; padding:30px 24px; margin:20px 0; box-shadow:0 4px 30px rgba(0,0,0,0.3); border:1px solid rgba(255,255,255,0.07); }
-        .level-title { text-align:center; margin-bottom:25px; font-size:22px; font-weight:700; }
-        .level-buttons { display:flex; flex-direction:column; gap:12px; }
-        .level-btn { padding:20px; border:none; border-radius:20px; font-size:18px; font-weight:700; cursor:pointer; color:white; display:flex; justify-content:space-between; align-items:center; }
-        .level-btn.easy { background:linear-gradient(135deg,#4CAF50,#2E7D32); }
-        .level-btn.medium { background:linear-gradient(135deg,#FF9800,#F57C00); }
-        .level-btn.hard { background:linear-gradient(135deg,#f44336,#C62828); }
-        .level-range { font-size:14px; background:rgba(255,255,255,0.2); padding:4px 12px; border-radius:40px; }
-        .back-btn { margin-top:20px; padding:16px; border:none; background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.1); border-radius:18px; width:100%; font-size:16px; font-weight:600; cursor:pointer; color:#fff; }
-
-        .calculator-section { background:linear-gradient(135deg,#1a1a2e,#16213e); border-radius:32px; padding:20px; margin:10px 0; }
-        .calculator-tabs { display:flex; gap:8px; margin-bottom:16px; background:rgba(255,255,255,0.05); padding:5px; border-radius:18px; }
-        .calc-tab { flex:1; padding:12px; border:none; border-radius:14px; font-size:14px; font-weight:700; cursor:pointer; background:transparent; color:rgba(255,255,255,0.5); transition:all 0.25s; font-family:'Nunito',sans-serif; }
-        .calc-tab.active { background:linear-gradient(135deg,#2ECC71,#1a8a4a); color:white; box-shadow:0 4px 15px rgba(46,204,113,0.3); }
-        .calculator { background:#0d1117; border-radius:24px; padding:16px; border:1px solid rgba(255,255,255,0.07); }
-        .calc-display { background:linear-gradient(135deg,#0a0a1a,#111827); border-radius:16px; padding:16px 20px; margin-bottom:14px; text-align:right; font-size:34px; font-weight:800; min-height:72px; word-wrap:break-word; border:1px solid rgba(255,255,255,0.08); color:#2ECC71; font-family:'Nunito',monospace; letter-spacing:1px; }
-
-        .normal-calc .calc-buttons { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; }
-        .algebra-calc .calc-buttons { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; }
-
-        .calc-btn { padding:18px 8px; border:none; border-radius:16px; font-size:18px; font-weight:700; cursor:pointer; background:rgba(255,255,255,0.07); color:white; transition:all 0.15s; border:1px solid rgba(255,255,255,0.05); font-family:'Nunito',sans-serif; }
-        .calc-btn:active { transform:scale(0.93); background:rgba(255,255,255,0.15); }
-        .calc-btn.operator { background:linear-gradient(135deg,rgba(230,126,34,0.35),rgba(211,84,0,0.35)); color:#E67E22; border-color:rgba(230,126,34,0.3); }
-        .calc-btn.equals { background:linear-gradient(135deg,#2ECC71,#1a8a4a); color:white; border-color:transparent; box-shadow:0 4px 15px rgba(46,204,113,0.25); }
-        .calc-btn.clear { background:linear-gradient(135deg,rgba(231,76,60,0.35),rgba(192,57,43,0.35)); color:#e74c3c; border-color:rgba(231,76,60,0.3); }
-        .calc-btn.function { background:linear-gradient(135deg,rgba(52,152,219,0.35),rgba(25,118,210,0.35)); color:#3498DB; border-color:rgba(52,152,219,0.3); }
-        .calc-btn.span2 { grid-column:span 2; }
-        .calc-btn.span3 { grid-column:span 3; }
-
-        .game-area { animation:slideUp 0.3s; }
-        @keyframes slideUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-        .game-header { display:flex; justify-content:space-between; margin-bottom:20px; align-items:center; }
-        .timer { font-size:32px; font-weight:800; color:#ff6b6b; background:rgba(231,76,60,0.15); padding:12px 24px; border-radius:60px; border:1px solid rgba(231,76,60,0.3); }
-        .timer.warning { animation:pulse 0.8s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
-        .progress { background:rgba(46,204,113,0.15); padding:12px 24px; border-radius:60px; font-weight:700; color:var(--primary); font-size:16px; border:1px solid rgba(46,204,113,0.3); }
-        .question-card { background:linear-gradient(135deg,#667eea,#764ba2); padding:50px 20px; border-radius:40px; margin-bottom:20px; text-align:center; }
-        .question-text { color:white; font-size:48px; font-weight:800; }
-        .options-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; margin-bottom:20px; }
-        .option-btn { background:rgba(255,255,255,0.07); border:2px solid rgba(255,255,255,0.12); border-radius:22px; padding:22px 10px; font-size:24px; font-weight:700; cursor:pointer; transition:transform 0.1s; color:#fff; }
-        .option-btn:active { transform:scale(0.96); }
-        .option-btn.correct { background:#4CAF50; color:white; border-color:#4CAF50; }
-        .option-btn.wrong { background:#f44336; color:white; border-color:#f44336; }
-        .option-btn:disabled { opacity:0.7; cursor:not-allowed; }
-        .action-buttons { display:flex; gap:14px; }
-        .skip-btn,.submit-btn { flex:1; padding:18px; border:none; border-radius:22px; font-size:17px; font-weight:700; cursor:pointer; color:white; }
-        .skip-btn { background:linear-gradient(135deg,#FF9800,#F57C00); }
-        .submit-btn { background:linear-gradient(135deg,#2196F3,#1976D2); }
-
-        .modal { position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); display:flex; align-items:center; justify-content:center; z-index:2000; padding:20px; }
-        .modal-content { background:#16213e; border:1px solid rgba(255,255,255,0.1); padding:32px 24px; border-radius:40px; width:100%; max-width:400px; max-height:80vh; overflow-y:auto; color:#fff; }
-        .stat { font-size:18px; margin:12px 0; padding:14px; border-radius:18px; font-weight:600; }
-        .stat.correct { background:#E8F5E9; color:#2E7D32; }
-        .stat.wrong { background:#FFEBEE; color:#C62828; }
-        .stat.skipped { background:#FFF3E0; color:#EF6C00; }
-        .stat.score { background:#E3F2FD; color:#1565C0; }
-        .play-again-btn { background:linear-gradient(135deg,#4CAF50,#2E7D32); color:white; border:none; padding:18px 32px; border-radius:50px; font-size:18px; font-weight:700; cursor:pointer; width:100%; margin-top:15px; }
-
-        .hidden { display:none; }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',Roboto,system-ui,sans-serif}
+        :root{--primary:#2ECC71;--primary-dark:#1a8a4a;--secondary:#3498DB;--warning:#E67E22;--danger:#e74c3c;--dark:#0a0a1a;--light:rgba(46,204,113,0.1);--white:#fff;--card-bg:#16213e;--card2:#0f3460}
+        html{-webkit-tap-highlight-color:transparent}
+        body{background:#0a0a1a;color:#fff;max-width:480px;margin:0 auto;padding:16px;min-height:100vh;-webkit-font-smoothing:antialiased}
+        
+        .header{display:flex;align-items:center;justify-content:space-between;padding:10px 0 20px}
+        .logo-container{display:flex;align-items:center;gap:12px}
+        .logo{width:50px;height:50px;background:var(--primary);border-radius:16px;display:flex;align-items:center;justify-content:center;color:white;font-weight:bold;font-size:22px}
+        .welcome-text{font-size:15px;color:rgba(255,255,255,0.6)}
+        .welcome-text span{color:var(--primary);font-size:18px;font-weight:700;display:block}
+        .menu-icon{cursor:pointer;padding:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:14px;-webkit-tap-highlight-color:transparent}
+        .menu-icon span{display:block;width:22px;height:3px;background:#fff;margin:4px 0;border-radius:3px}
+        
+        .menu-dropdown{position:fixed;top:80px;right:16px;background:#16213e;border:1px solid rgba(46,204,113,0.2);border-radius:24px;box-shadow:0 10px 40px rgba(0,0,0,0.5);padding:8px;display:none;z-index:1000;min-width:220px;will-change:transform}
+        .menu-dropdown.active{display:block;animation:fadeIn .15s ease-out}
+        .menu-dropdown a{display:flex;align-items:center;gap:12px;padding:16px;text-decoration:none;color:#fff;border-radius:18px;cursor:pointer}
+        .menu-dropdown a:active{background:rgba(46,204,113,0.15)}
+        
+        .section-title{font-size:24px;margin:20px 0 15px;font-weight:700;padding-left:16px;border-left:6px solid var(--primary)}
+        .categories-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-bottom:20px}
+        .category-card{background:#16213e;border-radius:24px;padding:24px 16px;text-align:center;cursor:pointer;box-shadow:0 4px 20px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.07);-webkit-tap-highlight-color:transparent;transform:translateZ(0)}
+        .category-card:active{transform:scale(0.97)}
+        .category-icon{font-size:42px;margin-bottom:10px;display:block}
+        .category-name{font-weight:600;color:#fff}
+        .category-card.calculator-card{background:linear-gradient(135deg,#FF6B6B,#FF8E53);color:white;grid-column:span 2}
+        .category-card.calculator-card .category-name{color:white}
+        .category-card.practice-card{background:linear-gradient(135deg,#667eea,#764ba2);color:white;grid-column:span 2}
+        .category-card.practice-card .category-name{color:white}
+        
+        .level-selection{background:#16213e;border-radius:32px;padding:30px 24px;margin:20px 0;box-shadow:0 4px 30px rgba(0,0,0,0.3);border:1px solid rgba(255,255,255,0.07)}
+        .level-title{text-align:center;margin-bottom:25px;font-size:22px;font-weight:700}
+        .level-buttons{display:flex;flex-direction:column;gap:12px}
+        .level-btn{padding:20px;border:none;border-radius:20px;font-size:18px;font-weight:700;cursor:pointer;color:white;display:flex;justify-content:space-between;align-items:center;-webkit-tap-highlight-color:transparent}
+        .level-btn.easy{background:linear-gradient(135deg,#4CAF50,#2E7D32)}
+        .level-btn.medium{background:linear-gradient(135deg,#FF9800,#F57C00)}
+        .level-btn.hard{background:linear-gradient(135deg,#f44336,#C62828)}
+        .level-range{font-size:14px;background:rgba(255,255,255,0.2);padding:4px 12px;border-radius:40px}
+        .back-btn{margin-top:20px;padding:16px;border:none;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.1);border-radius:18px;width:100%;font-size:16px;font-weight:600;cursor:pointer;color:#fff;-webkit-tap-highlight-color:transparent}
+        
+        .calculator-section{background:#1a1a2e;border-radius:32px;padding:20px;margin:10px 0}
+        .calculator-tabs{display:flex;gap:8px;margin-bottom:16px;background:rgba(255,255,255,0.05);padding:5px;border-radius:18px}
+        .calc-tab{flex:1;padding:12px;border:none;border-radius:14px;font-size:14px;font-weight:700;cursor:pointer;background:transparent;color:rgba(255,255,255,0.5);font-family:'Nunito',sans-serif;-webkit-tap-highlight-color:transparent}
+        .calc-tab.active{background:var(--primary);color:white;box-shadow:0 4px 15px rgba(46,204,113,0.3)}
+        .calculator{background:#0d1117;border-radius:24px;padding:16px;border:1px solid rgba(255,255,255,0.07)}
+        .calc-display{background:#0a0a1a;border-radius:16px;padding:16px 20px;margin-bottom:14px;text-align:right;font-size:34px;font-weight:800;min-height:72px;word-wrap:break-word;border:1px solid rgba(255,255,255,0.08);color:#2ECC71;font-family:'Nunito',monospace;letter-spacing:1px}
+        
+        .normal-calc .calc-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}
+        .algebra-calc .calc-buttons{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+        
+        .calc-btn{padding:18px 8px;border:none;border-radius:16px;font-size:18px;font-weight:700;cursor:pointer;background:rgba(255,255,255,0.07);color:white;border:1px solid rgba(255,255,255,0.05);font-family:'Nunito',sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+        .calc-btn:active{transform:scale(0.93);background:rgba(255,255,255,0.15)}
+        .calc-btn.operator{background:rgba(230,126,34,0.35);color:#E67E22;border-color:rgba(230,126,34,0.3)}
+        .calc-btn.equals{background:var(--primary);color:white;border-color:transparent;box-shadow:0 4px 15px rgba(46,204,113,0.25)}
+        .calc-btn.clear{background:rgba(231,76,60,0.35);color:#e74c3c;border-color:rgba(231,76,60,0.3)}
+        .calc-btn.function{background:rgba(52,152,219,0.35);color:#3498DB;border-color:rgba(52,152,219,0.3)}
+        .calc-btn.span2{grid-column:span 2}
+        .calc-btn.span3{grid-column:span 3}
+        
+        .game-area{animation:slideUp .2s ease-out}
+        @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+        @keyframes fadeIn{from{opacity:0;transform:scale(0.95)}to{opacity:1;transform:scale(1)}}
+        .game-header{display:flex;justify-content:space-between;margin-bottom:20px;align-items:center}
+        .timer{font-size:32px;font-weight:800;color:#ff6b6b;background:rgba(231,76,60,0.15);padding:12px 24px;border-radius:60px;border:1px solid rgba(231,76,60,0.3)}
+        .timer.warning{animation:pulse .5s infinite}
+        @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+        .progress{background:rgba(46,204,113,0.15);padding:12px 24px;border-radius:60px;font-weight:700;color:var(--primary);font-size:16px;border:1px solid rgba(46,204,113,0.3)}
+        .question-card{background:linear-gradient(135deg,#667eea,#764ba2);padding:50px 20px;border-radius:40px;margin-bottom:20px;text-align:center}
+        .question-text{color:white;font-size:48px;font-weight:800}
+        .options-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:20px}
+        .option-btn{background:rgba(255,255,255,0.07);border:2px solid rgba(255,255,255,0.12);border-radius:22px;padding:22px 10px;font-size:24px;font-weight:700;cursor:pointer;color:#fff;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+        .option-btn:active{transform:scale(0.96)}
+        .option-btn.correct{background:#4CAF50;color:white;border-color:#4CAF50;animation:correctPop .3s ease-out}
+        .option-btn.wrong{background:#f44336;color:white;border-color:#f44336;animation:wrongShake .3s ease-out}
+        .option-btn:disabled{opacity:0.7;cursor:not-allowed}
+        @keyframes correctPop{0%{transform:scale(1)}50%{transform:scale(1.05)}100%{transform:scale(1)}}
+        @keyframes wrongShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+        .action-buttons{display:flex;gap:14px}
+        .skip-btn,.submit-btn{flex:1;padding:18px;border:none;border-radius:22px;font-size:17px;font-weight:700;cursor:pointer;color:white;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+        .skip-btn{background:linear-gradient(135deg,#FF9800,#F57C00)}
+        .submit-btn{background:linear-gradient(135deg,#2196F3,#1976D2)}
+        
+        .modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:flex;align-items:center;justify-content:center;z-index:2000;padding:20px;animation:fadeIn .2s ease-out;backdrop-filter:blur(4px)}
+        .modal-content{background:#16213e;border:1px solid rgba(255,255,255,0.1);padding:32px 24px;border-radius:40px;width:100%;max-width:400px;max-height:80vh;overflow-y:auto;color:#fff;animation:slideUp .25s ease-out}
+        .stat{font-size:18px;margin:12px 0;padding:14px;border-radius:18px;font-weight:600}
+        .stat.correct{background:#E8F5E9;color:#2E7D32}
+        .stat.wrong{background:#FFEBEE;color:#C62828}
+        .stat.skipped{background:#FFF3E0;color:#EF6C00}
+        .stat.score{background:#E3F2FD;color:#1565C0}
+        .play-again-btn{background:linear-gradient(135deg,#4CAF50,#2E7D32);color:white;border:none;padding:18px 32px;border-radius:50px;font-size:18px;font-weight:700;cursor:pointer;width:100%;margin-top:15px;-webkit-tap-highlight-color:transparent}
+        
+        .scoreboard-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:15px}
+        .stat-card{background:rgba(46,204,113,0.1);padding:16px;border-radius:16px;text-align:center}
+        .stat-card .number{font-size:28px;font-weight:800;color:var(--primary)}
+        .history-item{background:rgba(255,255,255,0.05);padding:14px;border-radius:16px;margin-bottom:10px}
+        .history-header{display:flex;justify-content:space-between;margin-bottom:8px}
+        .history-category{font-weight:700;color:var(--primary)}
+        .history-difficulty{font-size:12px;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,0.1)}
+        .history-difficulty.easy{background:rgba(76,175,80,0.2);color:#4CAF50}
+        .history-difficulty.medium{background:rgba(255,152,0,0.2);color:#FF9800}
+        .history-difficulty.hard{background:rgba(244,67,54,0.2);color:#f44336}
+        .history-stats{display:flex;justify-content:space-around;margin-bottom:8px}
+        .history-stat{font-size:14px;font-weight:600}
+        .history-date{font-size:11px;color:rgba(255,255,255,0.5);text-align:right}
+        
+        .hidden{display:none!important}
+        
+        /* Hardware acceleration for animations */
+        .category-card,.option-btn,.calc-btn,.level-btn{transform:translateZ(0);backface-visibility:hidden}
     </style>
 </head>
 <body>
@@ -122,12 +141,15 @@
     <div id="mainContent"></div>
     <div id="modalContainer"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
     <script>
+        // Performance optimizations
+        const $=id=>document.getElementById(id);
+        const $$=sel=>document.querySelectorAll(sel);
+        
         const firebaseConfig={
             apiKey:"AIzaSyADzxE7HmL1Z9A7VM_VWo9I5Z2Y6_aZERk",
             authDomain:"my-game-17edb.firebaseapp.com",
@@ -141,29 +163,34 @@
         const db=firebase.database();
         let currentUser=null;
 
+        // Cache DOM elements
+        let mainContent, modalContainer, menuDropdown, headerName;
+        
         auth.onAuthStateChanged(user=>{
             if(!user){ window.location.href='login.html'; return; }
             currentUser=user;
             db.ref('users/'+user.uid).get().then(snap=>{
-                if(snap.exists()){ document.getElementById('headerName').textContent=(snap.val().name||'Player')+' 🌍'; }
+                if(snap.exists()){ $('headerName').textContent=(snap.val().name||'Player')+' 🌍'; }
             });
             initApp();
         });
 
         function doLogout(){ if(confirm('Logout?')){ auth.signOut().then(()=>window.location.href='login.html'); } }
-        function toggleMenu() { document.getElementById('menuDropdown').classList.toggle('active'); }
+        function toggleMenu() { menuDropdown.classList.toggle('active'); }
 
-        const MATH_PRACTICE_QS = Array.from({length:100}, (_,i)=> {
-            if(i<25) return {q:`√${(i+1)*(i+1)} = ?`, a:i+1, opts:[i+1, i+2, i+3, i+4]};
-            if(i<50) { let n=i-24; return {q:`∛${n*n*n} = ?`, a:n, opts:[n, n+1, n+2, n+3]}; }
-            if(i<75) { let n=i-49; return {q:`${n}² = ?`, a:n*n, opts:[n*n, n*n+1, n*n+2, n*n+3]}; }
-            let n=i-74; return {q:`${n}³ = ?`, a:n*n*n, opts:[n*n*n, n*n*n+1, n*n*n+2, n*n*n+3]};
-        });
+        // Pre-generate practice questions once
+        const MATH_PRACTICE_QS = [];
+        for(let i=0;i<100;i++){
+            if(i<25) MATH_PRACTICE_QS.push({q:`√${(i+1)*(i+1)} = ?`, a:i+1, opts:[i+1, i+2, i+3, i+4]});
+            else if(i<50) { const n=i-24; MATH_PRACTICE_QS.push({q:`∛${n*n*n} = ?`, a:n, opts:[n, n+1, n+2, n+3]}); }
+            else if(i<75) { const n=i-49; MATH_PRACTICE_QS.push({q:`${n}² = ?`, a:n*n, opts:[n*n, n*n+1, n*n+2, n*n+3]}); }
+            else { const n=i-74; MATH_PRACTICE_QS.push({q:`${n}³ = ?`, a:n*n*n, opts:[n*n*n, n*n*n+1, n*n*n+2, n*n*n+3]}); }
+        }
 
         const GameState = {
             currentCategory:'', currentDifficulty:'',
             score:0, correct:0, wrong:0, skipped:0,
-            questionCount:0, timer:null, timeLeft:20,
+            questionCount:0, timer:null, timeLeft:15,
             currentQuestion:null,
             categories:[
                 {id:1, name:'Square Root', icon:'√', color:'#4CAF50'},
@@ -180,10 +207,18 @@
         };
 
         function initApp() {
+            // Cache DOM references
+            mainContent = $('mainContent');
+            modalContainer = $('modalContainer');
+            menuDropdown = $('menuDropdown');
+            headerName = $('headerName');
+            
             renderCategories();
-            document.getElementById('menuIcon').addEventListener('click',(e)=>{e.stopPropagation(); toggleMenu();});
-            document.addEventListener('click',()=>document.getElementById('menuDropdown').classList.remove('active'));
-            document.getElementById('menuDropdown').addEventListener('click',(e)=>e.stopPropagation());
+            
+            // Use event delegation for better performance
+            $('menuIcon').onclick = e => { e.stopPropagation(); toggleMenu(); };
+            document.onclick = () => menuDropdown.classList.remove('active');
+            menuDropdown.onclick = e => e.stopPropagation();
         }
 
         function renderCategories() {
@@ -217,7 +252,7 @@
                         <button class="level-btn medium" onclick="startGame('medium')">Medium <span class="level-range">31-50</span></button>
                         <button class="level-btn hard" onclick="startGame('hard')">Hard <span class="level-range">51-100</span></button>
                     </div>
-                    <button class="back-btn" onclick="backToMain()">← Back</button>
+                    <button class="back-btn" onclick="backToMain()">��� Back</button>
                 </div>`;
         }
 
